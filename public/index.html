@@ -8,25 +8,35 @@
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
+  <div class="chat-container">
+    <!-- Active Users Box -->
+    <aside id="active-users-box">
+      <h3>Active Users</h3>
+      <ul id="active-users"></ul>
+    </aside>
 
-  <div id="room-selection" class="room-selection">
-    <h2>Join or Create Room</h2>
-    <form id="room-form">
-      <input type="text" id="username" placeholder="Enter your username" required />
-      <input type="text" id="room-name" placeholder="Enter room name" required />
-      <button type="submit">Create/Join Room</button>
-    </form>
-  </div>
+    <!-- Chat Box -->
+    <section id="chat-box">
+      <div id="chat-screen" class="chat-screen hidden">
+        <h2>Chat in Room: <span id="room-name-title"></span></h2>
+        <div id="messages" class="messages"></div>
+        <form id="chat-form">
+          <input type="text" id="message-input" placeholder="Type a message..." required />
+          <button type="submit">Send</button>
+        </form>
+        <button id="leave-room">Leave Room</button>
+      </div>
 
-  <div id="chat-screen" class="chat-screen hidden">
-    <h2>Chat in Room: <span id="room-name-title"></span></h2>
-    <div id="messages" class="messages"></div>
-    <ul id="active-users"></ul>
-    <form id="chat-form">
-      <input type="text" id="message-input" placeholder="Type a message..." required />
-      <button type="submit">Send</button>
-    </form>
-    <button id="leave-room">Leave Room</button>
+      <!-- Room Selection Screen -->
+      <div id="room-selection" class="room-selection">
+        <h2>Join or Create Room</h2>
+        <form id="room-form">
+          <input type="text" id="username" placeholder="Enter your username" required />
+          <input type="text" id="room-name" placeholder="Enter room name" required />
+          <button type="submit">Create/Join Room</button>
+        </form>
+      </div>
+    </section>
   </div>
 
   <script src="app.js"></script>

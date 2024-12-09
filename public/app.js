@@ -22,14 +22,9 @@ roomForm.addEventListener("submit", (e) => {
   const roomName = roomNameInput.value.trim();
 
   if (username && roomName) {
-    // Emit a joinRoom event with the username and room name
     socket.emit("joinRoom", { username, roomName });
-
-    // Hide room selection form and show chat screen
     roomSelectionScreen.classList.add("hidden");
     chatScreen.classList.remove("hidden");
-
-    // Set the room title in the chat screen
     roomNameTitle.textContent = roomName;
   }
 });
