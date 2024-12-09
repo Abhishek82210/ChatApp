@@ -156,3 +156,10 @@ button#leave-room:hover {
     width: 100%;
   }
 }
+.message {
+  background-color: #e7e7e7;
+  padding: 10px;
+  margin-bottom: 15px; /* Increased space between messages */
+  border-radius: 4px;
+}
+
