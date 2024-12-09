@@ -7,17 +7,15 @@ const chatForm = document.getElementById("chat-form");
 const messages = document.getElementById("messages");
 const activeUsersList = document.getElementById("active-users");
 const roomSelectionScreen = document.getElementById("room-selection");
-const chatScreen = document.getElementById("chat-screen");
+const chatContainer = document.getElementById("chat-container");
 const roomNameTitle = document.getElementById("room-name-title");
 const leaveRoomButton = document.getElementById("leave-room");
 const messageInput = document.getElementById("message-input");
 const usernameInput = document.getElementById("username");
 const roomNameInput = document.getElementById("room-name");
-const activeUsersBox = document.getElementById("active-users-box");
 
-// Initially hide chat box and active users list
-chatScreen.style.display = "none";
-activeUsersBox.style.display = "none";
+// Initially hide chat container
+chatContainer.style.display = "none";
 
 // When user joins or creates a room
 roomForm.addEventListener("submit", (e) => {
@@ -30,13 +28,12 @@ roomForm.addEventListener("submit", (e) => {
     // Emit joinRoom event
     socket.emit("joinRoom", { username, roomName });
 
-    // Hide room selection screen and show chat screen and active users
+    // Hide room selection screen and show chat container
     roomSelectionScreen.style.display = "none";
-    chatScreen.style.display = "flex";
-    activeUsersBox.style.display = "block";
+    chatContainer.style.display = "flex";
 
     // Set room name
-    roomNameTitle.textContent = roomName;
+    roomNameTitle.textContent = `Room: ${roomName}`;
   }
 });
 
@@ -59,7 +56,7 @@ socket.on("activeUsers", (users) => {
   activeUsersList.innerHTML = ""; // Clear the current list
   users.forEach((user) => {
     const userElement = document.createElement("li");
-    userElement.textContent = user;
+    userElement.innerHTML = `<strong>${user}</strong>`;
     activeUsersList.appendChild(userElement);
   });
 });
