@@ -13,6 +13,11 @@ const leaveRoomButton = document.getElementById("leave-room");
 const messageInput = document.getElementById("message-input");
 const usernameInput = document.getElementById("username");
 const roomNameInput = document.getElementById("room-name");
+const activeUsersBox = document.getElementById("active-users-box");
+
+// Initially hide chat box and active users list
+chatScreen.style.display = "none";
+activeUsersBox.style.display = "none";
 
 // When user joins or creates a room
 roomForm.addEventListener("submit", (e) => {
@@ -22,9 +27,15 @@ roomForm.addEventListener("submit", (e) => {
   const roomName = roomNameInput.value.trim();
 
   if (username && roomName) {
+    // Emit joinRoom event
     socket.emit("joinRoom", { username, roomName });
-    roomSelectionScreen.classList.add("hidden");
-    chatScreen.classList.remove("hidden");
+
+    // Hide room selection screen and show chat screen and active users
+    roomSelectionScreen.style.display = "none";
+    chatScreen.style.display = "flex";
+    activeUsersBox.style.display = "block";
+
+    // Set room name
     roomNameTitle.textContent = roomName;
   }
 });
@@ -60,7 +71,7 @@ chatForm.addEventListener("submit", (e) => {
   const message = messageInput.value.trim();
   if (message) {
     socket.emit("chatMessage", message);
-    messageInput.value = "";  // Clear the input field
+    messageInput.value = ""; // Clear the input field
   }
 });
 
