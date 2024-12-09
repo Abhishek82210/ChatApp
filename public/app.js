@@ -5,6 +5,7 @@ const socket = io();
 const roomForm = document.getElementById("room-form");
 const chatForm = document.getElementById("chat-form");
 const messages = document.getElementById("messages");
+const activeUsersList = document.getElementById("active-users");
 const roomSelectionScreen = document.getElementById("room-selection");
 const chatScreen = document.getElementById("chat-screen");
 const roomNameTitle = document.getElementById("room-name-title");
@@ -45,6 +46,16 @@ socket.on("message", ({ user, text, timestamp }) => {
   `;
   messages.appendChild(messageElement);
   messages.scrollTop = messages.scrollHeight; // Auto scroll to the bottom
+});
+
+// Update active users list
+socket.on("activeUsers", (users) => {
+  activeUsersList.innerHTML = ""; // Clear the current list
+  users.forEach((user) => {
+    const userElement = document.createElement("li");
+    userElement.textContent = user;
+    activeUsersList.appendChild(userElement);
+  });
 });
 
 // Handle sending chat messages

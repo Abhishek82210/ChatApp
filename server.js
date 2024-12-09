@@ -25,15 +25,18 @@ io.on("connection", (socket) => {
     socket.broadcast.to(roomName).emit("message", {
       user: "Admin",
       text: `${username} has joined the room.`,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
     });
 
     // Notify the user themselves
     socket.emit("message", {
       user: "Admin",
       text: `Welcome to the room "${roomName}", ${username}!`,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
     });
+
+    // Send updated list of active users in the room
+    io.to(roomName).emit("activeUsers", rooms[roomName]);
   });
 
   // When a user sends a chat message
@@ -43,13 +46,31 @@ io.on("connection", (socket) => {
       io.to(roomName).emit("message", {
         user: socket.username || "Unknown User",
         text: msg,
-        timestamp: new Date().toLocaleTimeString(),
+        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
       });
     }
   });
 
   // When a user disconnects
   socket.on("disconnect", () => {
+    const roomName = Array.from(socket.rooms).find((room) => room !== socket.id);
+
+    if (roomName) {
+      rooms[roomName] = rooms[roomName].filter((user) => user !== socket.username);
+
+      // Notify the room of the user's departure
+      socket.broadcast.to(roomName).emit("message", {
+        user: "Admin",
+        text: `${socket.username} has left the room.`,
+        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+      });
+
+      // Send updated list of active users in the room
+      io.to(roomName).emit("activeUsers", rooms[roomName]);
+
+      // If no users are left in the room, delete it
+      if (rooms[roomName].length === 0) delete rooms[roomName];
+    }
     console.log("A user disconnected.");
   });
 });
