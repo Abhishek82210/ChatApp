@@ -1,95 +1,77 @@
-const roomSelection = document.querySelector('.room-selection');
-const chatContainer = document.querySelector('.chat-container');
-const joinRoomButton = document.getElementById('join-room');
-const leaveRoomButton = document.getElementById('leave-room');
-const activeUsersList = document.getElementById('active-users');
-const messagesDiv = document.getElementById('messages');
-const chatForm = document.getElementById('chat-form');
+const socket = io(); // Connect to the server
+
+// DOM Elements
+const roomCodeInput = document.getElementById('room');
+const usernameInput = document.getElementById('username');
+const joinButton = document.getElementById('join-btn');
+const leaveButton = document.getElementById('leave-room');
+const chatContainer = document.getElementById('chat-container');
+const activeUsersBox = document.getElementById('active-users');
+const messagesContainer = document.getElementById('messages');
 const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-message');
+const roomCodeDisplay = document.getElementById('room-code-value');
 
-let username = '';
-let room = '';
-let users = [];
-
-// Mock socket simulation
-const socket = {
-  on(event, callback) {
-    if (event === 'user-joined') {
-      setTimeout(() => callback({ username: 'NewUser', users: ['User1', 'User2', 'NewUser'] }), 2000);
-    }
-    if (event === 'user-left') {
-      setTimeout(() => callback({ username: 'User1', users: ['User2', 'NewUser'] }), 4000);
-    }
-    if (event === 'message') {
-      setTimeout(() => callback({ username: 'NewUser', message: 'Hello!' }), 1000);
-    }
-  },
-  emit(event, data) {
-    console.log(`Event: ${event}`, data);
-  }
-};
-
-// Handle join room
-joinRoomButton.addEventListener('click', () => {
-  username = document.getElementById('username').value.trim();
-  room = document.getElementById('room').value.trim();
-
-  if (!username || !room) {
-    alert('Please enter a username and room code.');
-    return;
-  }
-
-  roomSelection.style.display = 'none';
+// Show chat and active user section after joining a room
+function showChat() {
+  document.getElementById('room-selection').style.display = 'none';
   chatContainer.style.display = 'flex';
+}
 
-  // Simulate joining the room
-  socket.emit('join-room', { username, room });
-  socket.on('user-joined', (data) => {
-    users = data.users;
-    updateUserList();
-    showMessage(`${data.username} has joined the room.`);
-  });
+// When the user clicks on the Join button
+joinButton.addEventListener('click', () => {
+  const username = usernameInput.value;
+  const room = roomCodeInput.value;
 
-  socket.on('user-left', (data) => {
-    users = data.users;
-    updateUserList();
-    showMessage(`${data.username} has left the room.`);
-  });
-
-  socket.on('message', (data) => {
-    showMessage(`${data.username}: ${data.message}`);
-  });
-});
-
-// Handle leave room
-leaveRoomButton.addEventListener('click', () => {
-  roomSelection.style.display = 'flex';
-  chatContainer.style.display = 'none';
-  users = [];
-  updateUserList();
-});
-
-// Handle sending messages
-chatForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const message = messageInput.value.trim();
-  if (message) {
-    showMessage(`You: ${message}`);
-    messageInput.value = '';
-    socket.emit('message', { username, message });
+  if (username && room) {
+    // Emit joinRoom event to the server with username and room code
+    socket.emit('joinRoom', { username, room });
+    roomCodeDisplay.textContent = room; // Display the room code in the chat header
+    showChat(); // Show the chat and active user section
+  } else {
+    alert('Please enter both username and room code');
   }
 });
 
-// Update active users list
-function updateUserList() {
-  activeUsersList.innerHTML = users.map((user) => `<li>${user}</li>`).join('');
-}
+// Emit chat message when the user sends a message
+sendButton.addEventListener('click', () => {
+  const message = messageInput.value;
+  if (message) {
+    socket.emit('chatMessage', message);
+    messageInput.value = ''; // Clear input after sending
+  }
+});
 
-// Show messages
-function showMessage(message) {
-  const messageDiv = document.createElement('div');
-  messageDiv.classList.add('message');
-  messageDiv.textContent = message;
-  messagesDiv.appendChild(messageDiv);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
+// Emit leaveRoom event when the user wants to leave the room
+leaveButton.addEventListener('click', () => {
+  socket.emit('leaveRoom');
+  chatContainer.style.display = 'none'; // Hide the chat container
+  document.getElementById('room-selection').style.display = 'block'; // Show room selection again
+});
+
+// Listen for incoming messages
+socket.on('message', (message) => {
+  const div = document.createElement('div');
+  div.classList.add('message');
+  div.innerHTML = `<strong>${message.username}</strong>: ${message.text} <span class="timestamp">${new Date().toLocaleTimeString()}</span> <span class="date">${new Date().toLocaleDateString()}</span>`;
+  messagesContainer.appendChild(div);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to bottom
+});
+
+// Listen for updated active users list
+socket.on('roomUsers', ({ users }) => {
+  activeUsersBox.innerHTML = ''; // Clear existing users
+  users.forEach(user => {
+    const li = document.createElement('li');
+    li.textContent = user.username;
+    activeUsersBox.appendChild(li);
+  });
+});
+
+// Handle socket disconnect
+socket.on('disconnect', () => {
+  alert('You have been disconnected from the server.');
+});
+
+// Automatically scroll to the bottom of the chat on new messages
+messagesContainer.scrollTop = messagesContainer.scrollHeight;

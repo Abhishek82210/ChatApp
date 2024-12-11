@@ -7,33 +7,33 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Room Selection Screen -->
-  <div class="room-selection">
-    <h1>Join a Room</h1>
-    <input type="text" id="username" placeholder="Enter your username">
-    <input type="text" id="room" placeholder="Enter room code">
-    <button id="join-room">Create/Join</button>
+  <!-- Initial Room Selection Section -->
+  <div class="room-selection" id="room-selection">
+    <h1>Join or Create Room</h1>
+    <input type="text" id="username" placeholder="Enter your username" required>
+    <input type="text" id="room" placeholder="Enter Room Code" required>
+    <button id="join-btn">Join/Create Room</button>
   </div>
 
-  <!-- Chat Container -->
-  <div class="chat-container">
-    <!-- Active Users Section -->
+  <!-- Chat Box Section (Initially hidden) -->
+  <div class="chat-container" id="chat-container" style="display: none;">
     <div id="active-users-box">
       <h3>Active Users</h3>
       <ul id="active-users"></ul>
       <button id="leave-room">Leave Room</button>
     </div>
-
-    <!-- Chat Box -->
     <div id="chat-box">
+      <h2 id="room-code">Room Code: <span id="room-code-value"></span></h2>
       <div id="messages"></div>
-      <form id="chat-form">
-        <input type="text" id="message-input" placeholder="Type a message">
-        <button type="submit">Send</button>
-      </form>
+      <div id="chat-form">
+        <input type="text" id="message-input" placeholder="Enter your message..." />
+        <button id="send-message">Send</button>
+      </div>
     </div>
   </div>
 
+  <!-- Include Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
