@@ -1,80 +1,68 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-
+const express = require('express');
+const http = require('http');
+const socketio = require('socket.io');
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = socketio(server);
 
-const rooms = {}; // Track active rooms and their users
+app.use(express.static('public'));
 
-app.use(express.static(__dirname + "/public"));
+let users = {};
 
-io.on("connection", (socket) => {
-  console.log("A user connected.");
+io.on('connection', (socket) => {
+  console.log('New WebSocket connection');
 
-  // When a user joins a room
-  socket.on("joinRoom", ({ username, roomName }) => {
-    socket.join(roomName);
-    socket.username = username; // Store the username in the socket object
+  socket.on('joinRoom', ({ username, room }) => {
+    socket.join(room);
+    users[socket.id] = { username, room };
 
-    if (!rooms[roomName]) rooms[roomName] = [];
-    rooms[roomName].push(username);
+    // Welcome current user
+    socket.emit('message', `Welcome to the chat, ${username}!`);
 
-    // Notify everyone in the room
-    socket.broadcast.to(roomName).emit("message", {
-      user: "Admin",
-      text: `${username} has joined the room.`,
-      timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-    });
+    // Broadcast when a user connects
+    socket.broadcast
+      .to(room)
+      .emit('message', `${username} has joined the chat`);
 
-    // Notify the user themselves
-    socket.emit("message", {
-      user: "Admin",
-      text: `Welcome to the room "${roomName}", ${username}!`,
-      timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-    });
-
-    // Send updated list of active users in the room
-    io.to(roomName).emit("activeUsers", rooms[roomName]);
+    // Send users in the room
+    io.to(room).emit('updateUsers', getUsersInRoom(room));
   });
 
-  // When a user sends a chat message
-  socket.on("chatMessage", (msg) => {
-    const roomName = Array.from(socket.rooms).find((room) => room !== socket.id);
-    if (roomName) {
-      io.to(roomName).emit("message", {
-        user: socket.username || "Unknown User",
-        text: msg,
-        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-      });
+  socket.on('chatMessage', (message) => {
+    const user = users[socket.id];
+    if (user) {
+      io.to(user.room).emit(
+        'message',
+        `${user.username}: ${message}`
+      );
     }
   });
 
-  // When a user disconnects
-  socket.on("disconnect", () => {
-    const roomName = Array.from(socket.rooms).find((room) => room !== socket.id);
-
-    if (roomName) {
-      rooms[roomName] = rooms[roomName].filter((user) => user !== socket.username);
-
-      // Notify the room of the user's departure
-      socket.broadcast.to(roomName).emit("message", {
-        user: "Admin",
-        text: `${socket.username} has left the room.`,
-        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-      });
-
-      // Send updated list of active users in the room
-      io.to(roomName).emit("activeUsers", rooms[roomName]);
-
-      // If no users are left in the room, delete it
-      if (rooms[roomName].length === 0) delete rooms[roomName];
+  socket.on('leaveRoom', () => {
+    const user = users[socket.id];
+    if (user) {
+      io.to(user.room).emit('message', `${user.username} has left the room`);
+      socket.leave(user.room);
+      delete users[socket.id];
+      io.to(user.room).emit('updateUsers', getUsersInRoom(user.room));
     }
-    console.log("A user disconnected.");
+  });
+
+  socket.on('disconnect', () => {
+    const user = users[socket.id];
+    if (user) {
+      io.to(user.room).emit('message', `${user.username} has left the room`);
+      delete users[socket.id];
+      io.to(user.room).emit('updateUsers', getUsersInRoom(user.room));
+    }
   });
 });
 
-server.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
-});
+function getUsersInRoom(room) {
+  return Object.values(users)
+    .filter((user) => user.room === room)
+    .map((user) => user.username);
+}
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
