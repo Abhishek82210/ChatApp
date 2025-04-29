@@ -1,6 +1,6 @@
 # ChatApp
 
-A real-time chat application .This app allows users to join chat rooms and send messages in real time.( deployed link is below)
+A real-time chat application .This app allows users to join chat rooms and send messages in real time.
 
 ## Features
 - **Join Chat Rooms**: Create or join existing rooms.
@@ -37,13 +37,5 @@ Technologies Used in Chat App
     package.json:
         Tracks project dependencies and scripts for starting the server (npm start).
 
-4. Hosting
-
-    Render:
-        A cloud hosting platform used to deploy your chat app and make it accessible online.
 
 
-   ## Deployment
-
-This chat app is deployed on Render. You can access it here:
-[ChatApp Live](https://chatapp-50z0.onrender.com/)
